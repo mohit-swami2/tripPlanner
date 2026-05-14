@@ -1,11 +1,13 @@
-require('dotenv').config();
+require('dotenv').config({
+  path: require('path').resolve(__dirname, '../.env')
+});
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const EmailTemplate = require('../models/EmailTemplate');
 
 const seedAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/tripPlanner');
+    await mongoose.connect(process.env.MONGO_URI);
 
     // Create Super Admin
     const existingAdmin = await User.findOne({ email: 'mohit@mailinator.com' });

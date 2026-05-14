@@ -39,7 +39,7 @@ app.use(cookieParser());
 
 // Database Connection
 if (process.env.NODE_ENV !== 'test') {
-  mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/tripPlanner')
+  mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('DB connection successful!'))
     .catch((err) => console.log('DB connection error:', err));
 }
