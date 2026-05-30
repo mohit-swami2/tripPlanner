@@ -1,87 +1,128 @@
-# Jaipur Tourism Portal Backend
+# TripPlanner Backend
 
-A production-ready Node.js and Express backend built for the Jaipur Tourism Portal. This project uses a strict MVC architecture in vanilla JavaScript, MongoDB for the database, Zod for schema validation, and implements a full Content Management System (CMS) and Admin portal.
+Module-first Node.js + Express 5 + MongoDB API for the Jaipur Tourism Portal.
 
-## 🚀 Features
-- **Strict Scope Separation**: Divided into `/website` (Public) and `/admin` (Protected) routes to ensure high security for internal operations.
-- **Advanced Admin Auth**: JWT-based authentication, password reset flows via email, profile image uploading, and `lastActive` tracking.
-- **Dynamic CMS Module**: Full CRUD operations for Testimonials and dynamic Email Templates used across the application.
-- **Automated Emailing**: Integrates seamlessly with Nodemailer to push real-time Admin notifications when new inquiries are submitted, and to send password reset links.
-- **Pagination & Filtering**: Includes a globally scalable `APIFeatures` utility that dynamically maps any `Mongoose` schema into queryable APIs with built in Zod validation.
-- **Security Utilities**: Pre-configured with Helmet, CORS, and Express Rate Limit, wrapped in a generic `errorHandler` to catch schema validation and asynchronous execution errors.
+## Stack
 
----
+- Express 5, Mongoose, Zod, JWT, bcrypt, nodemailer, multer, helmet, cors, express-rate-limit, morgan
 
-## 🛠️ Prerequisites
-- [Node.js](https://nodejs.org/en/) (v14 or higher recommended)
-- [MongoDB](https://www.mongodb.com/try/download/community) installed and running locally, or an Atlas URI.
-
----
-
-## ⚙️ Getting Started
-
-### 1. Installation
-Clone this repository and install the dependencies:
-```bash
-npm install
-```
-
-### 2. Environment Variables
-Create a `.env` file in the root directory. You can use the provided `.env.example` as a template:
-```bash
-cp .env.example .env
-```
-Ensure you fill out the `SMTP_` variables with real Mailtrap or SMTP provider credentials for the email functionality to work.
-
-### 3. Database Seeding
-To initialize the system, you must run the seeder script. This will generate the `Super Admin` account and inject the mandatory Email Templates (`forgot-password` and `enquiry-email`) into MongoDB.
-
-```bash
-node seeds/seedAdmin.js
-```
-*Default Super Admin Credentials:*
-- **Email:** `mohit@mailinator.com`
-- **Password:** `123123123`
-
-### 4. Running the Server
-Start the development server:
-```bash
-node server.js
-```
-The server will default to port `3000`.
-
----
-
-## 📁 Project Structure
+## Project structure
 
 ```text
-/controllers
-  /admin        -> Logic for the authenticated dashboard APIs
-  /website      -> Logic for public-facing APIs (inquiries, submitting testimonials)
-/middlewares    -> Auth logic, Global Error Catcher, and Zod Validator
-/models         -> Mongoose schemas (User, Inquiry, Testimonial, EmailTemplate)
-/routes
-  /admin        -> Admin routes (Protected via JWT and Role 'admin')
-  /website      -> Open routes
-/seeds          -> Scripts to populate default DB states
-/services       -> Reusable business logic (Pagination logic, Email dispatcher, File Uploader)
-/utils          -> CatchAsync wrappers and generic JSON response formatter
-/validations    -> Zod schemas ensuring clean data processing
-server.js       -> Main Express Entrypoint
-vercel.json     -> Vercel Serverless Function configuration
+src/
+  app.js, server.js
+  shared/          → utils, middleware, validators
+  modules/         → one folder per domain (admin, inquiry, trip, …)
+  routes/          → admin + website composers
+scripts/           → seeds
+public/            → static assets
 ```
 
----
+**Flow:** Route → Middleware → Controller → Service → Model
 
-## 📡 API Documentation
-A fully configured Postman collection has been provided in the root directory: `postman_collection.json`. 
+**Response shape:**
 
-**To use the Postman Collection:**
-1. Open Postman and select `Import`.
-2. Upload the `postman_collection.json` file.
-3. The collection is pre-configured with test scripts! Simply execute the **Admin Login** request, and the returned JWT token will be automatically applied to all subsequent Admin routes.
+```json
+{ "success": true, "message": "...", "data": [], "page": 1, "total": 0, "limit": 10, "totalPages": 0 }
+```
 
----
+## Setup
 
-## ☁️ Deployment
-This application is configured for deployment on Vercel. The Express app is explicitly exported inside `server.js` (instead of using `app.listen`), and the `vercel.json` maps all API routing gracefully. Simply link your repository to a Vercel project to deploy.
+```bash
+npm install
+cp .env.example .env
+# Edit MONGO_URI, JWT_SECRET, SMTP_*, ADMIN_EMAIL
+npm run seed:admin
+npm run dev
+```
+
+**Important (macOS MongoDB):** Use the exact database name casing in `MONGO_URI`, e.g. `mongodb://localhost:27017/tripPlanner` (not `tripplanner`). Wrong casing connects to an empty DB and login will fail.
+
+**Admin login URLs (all supported):**
+
+- `POST /api/admin/auth/login`
+- `POST /api/v1/admin/auth/login` (legacy)
+- `POST /admin/auth/login`
+
+Default admin (after seed): `mohit@mailinator.com` / `123123123`
+
+## API surfaces
+
+| Surface | Base paths |
+|---------|------------|
+| Admin (JWT) | `/api/admin`, `/admin` |
+| Website (public) | `/api/website`, `/api/v1/website` |
+| Health | `GET /health` |
+
+### Admin routes (Bearer JWT)
+
+| Method | Path | Module |
+|--------|------|--------|
+| POST | `/auth/login` | admin |
+| POST | `/auth/forgotPassword` | admin |
+| POST | `/auth/resetPassword/:token` | admin |
+| GET/PATCH | `/auth/profile` | admin |
+| GET | `/dashboard` | dashboard |
+| GET/PATCH/DELETE | `/inquiries`, `/inquiries/:id`, `/inquiries/:id/status` | inquiry (`PENDING` / `DONE`) |
+| CRUD | `/vendors` | vendor |
+| CRUD | `/trips`, `/trips/:id/enable` | trip (`isEnabled` for website) |
+| POST/GET | `/itineraries`, `/itineraries/trip/:tripId` | itinerary |
+| GET/POST | `/payments`, `/payments/trip/:tripId` | payment |
+| GET | `/invoices/:tripId` | invoice |
+| CRUD | `/packages` | package |
+| PUT/GET | `/cms` | content |
+| CRUD | `/cms/testimonials`, `/cms/faqs`, `/cms/email-templates` | cms |
+| GET/DELETE | `/contacts` | contactUs |
+
+### Website routes
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/packages`, `/packages/:id` | Active packages |
+| GET | `/trips`, `/trips/:id` | Enabled trips only (`isEnabled: true`) |
+| POST | `/inquiries` | Plan My Trip form |
+| POST | `/contact` | Contact form |
+| GET | `/testimonials` | Published testimonials |
+| POST | `/testimonials` | Submit review |
+| GET | `/faqs` | FAQ list |
+| GET | `/cms/:section` | Dynamic CMS section |
+
+## Patterns
+
+- **Soft delete:** `isDeleted: true` on all business models
+- **Auto codes:** `INQ-*`, `VEN-*`, `TRP-*`, `PKG-*`, `PAY-*`, `INV-*`
+- **Pagination:** `$match` → `$sort` → `$facet` (data + count)
+- **Filters:** `buildQueryFilter(query, model)` from query params
+
+## Postman
+
+Import `postman_collection.json`. Run **Admin Login** first; the test script stores the JWT for protected routes.
+
+## Deployment
+
+Vercel uses root `server.js` → `src/server.js`. Ensure `MONGO_URI` and env vars are set in the Vercel project.
+
+## Google Sheet API status
+
+| Sheet endpoint | Implemented route |
+|----------------|-------------------|
+| GET `/admin/dashboard` | `GET /admin/dashboard` |
+| GET `/admin/inquiries` | `GET /admin/inquiries` |
+| PATCH `/admin/inquiries/:id` | `PATCH /admin/inquiries/:id` |
+| POST `/admin/vendors` | `POST /admin/vendors` |
+| POST `/admin/trips` | `POST /admin/trips` |
+| POST `/admin/itineraries` | `POST /admin/itineraries` |
+| POST `/admin/payments` | `POST /admin/payments` |
+| GET `/admin/invoices/:tripId` | `GET /admin/invoices/:tripId` |
+| POST `/admin/packages` | `POST /admin/packages` |
+| PUT `/admin/cms` | `PUT /admin/cms` |
+| GET `/api/v1/website/packages` | `GET /api/v1/website/packages` |
+| GET `/api/v1/website/packages/:id` | `GET /api/v1/website/packages/:id` |
+| POST `/api/v1/website/inquiries` | `POST /api/v1/website/inquiries` |
+| POST `/api/v1/website/contact` | `POST /api/v1/website/contact` |
+| GET `/api/v1/website/testimonials` | `GET /api/v1/website/testimonials` |
+| POST `/api/v1/website/testimonials` | `POST /api/v1/website/testimonials` |
+| GET `/api/v1/website/faqs` | `GET /api/v1/website/faqs` |
+| GET `/api/v1/website/cms/:section` | `GET /api/v1/website/cms/:section` |
+
+Mark column **Status** as `Done` for rows 2–20 in your sheet.

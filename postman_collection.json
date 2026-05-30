@@ -1,387 +1,515 @@
 {
   "info": {
-    "name": "Jaipur Tourism Portal API",
+    "name": "TripPlanner API — Full",
+    "description": "All admin + website endpoints. Run Admin > Login first to set {{token}}.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8083" },
+    { "key": "token", "value": "" },
+    { "key": "inquiryId", "value": "" },
+    { "key": "tripId", "value": "" },
+    { "key": "vendorId", "value": "" },
+    { "key": "packageId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
   },
   "item": [
     {
-      "name": "Website (Public)",
+      "name": "Health",
       "item": [
         {
-          "name": "Inquiries",
-          "item": [
-            {
-              "name": "Create Inquiry",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"customerName\": \"John Doe\",\n  \"contact\": \"john@example.com\",\n  \"destinationInterest\": \"Amber Fort\",\n  \"travelDates\": \"2026-10-15T00:00:00.000Z\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/website/inquiries",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "website",
-                    "inquiries"
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "Testimonials",
-          "item": [
-            {
-              "name": "Submit Testimonial",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\",\n  \"rating\": 5,\n  \"description\": \"Great trip to Jaipur!\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/website/testimonials",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "website",
-                    "testimonials"
-                  ]
-                }
-              }
-            }
-          ]
+          "name": "GET /health",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/health" }
         }
       ]
     },
     {
-      "name": "Admin (Protected)",
+      "name": "Admin — Auth",
       "item": [
         {
-          "name": "Auth & Profile",
-          "item": [
-            {
-              "name": "Admin Login",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const response = pm.response.json();",
-                      "if(response.data && response.data.token) {",
-                      "    pm.collectionVariables.set(\"jwt_token\", response.data.token);",
-                      "}"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"email\": \"mohit@mailinator.com\",\n  \"password\": \"123123123\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/admin/auth/login",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "admin",
-                    "auth",
-                    "login"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Forgot Password",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"email\": \"mohit@mailinator.com\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/admin/auth/forgotPassword",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "admin",
-                    "auth",
-                    "forgotPassword"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Reset Password",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"password\": \"newpassword123\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/admin/auth/resetPassword/:token",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "admin",
-                    "auth",
-                    "resetPassword",
-                    ":token"
-                  ],
-                  "variable": [
-                    {
-                      "key": "token",
-                      "value": "paste_reset_token_here"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Get Profile",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwt_token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/admin/auth/profile",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "admin",
-                    "auth",
-                    "profile"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Update Profile",
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwt_token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"Super Admin Updated\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/admin/auth/profile",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "admin",
-                    "auth",
-                    "profile"
-                  ]
-                }
-              }
+          "name": "POST Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const j = pm.response.json();",
+                "if (j.data?.[0]?.token) pm.collectionVariables.set('token', j.data[0].token);"
+              ]
             }
-          ]
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"mohit@mailinator.com\",\n  \"password\": \"123123123\"\n}" },
+            "url": "{{baseUrl}}/api/admin/auth/login"
+          }
         },
         {
-          "name": "Inquiries",
-          "item": [
-            {
-              "name": "Get All Inquiries (Paginated & Filtered)",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwt_token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/admin/inquiries?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "admin",
-                    "inquiries"
-                  ],
-                  "query": [
-                    {
-                      "key": "page",
-                      "value": "1"
-                    },
-                    {
-                      "key": "limit",
-                      "value": "10"
-                    },
-                    {
-                      "key": "sortBy",
-                      "value": "createdAt"
-                    },
-                    {
-                      "key": "sortOrder",
-                      "value": "desc"
-                    }
-                  ]
-                }
-              }
-            }
-          ]
+          "name": "POST Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"mohit@mailinator.com\"\n}" },
+            "url": "{{baseUrl}}/api/admin/auth/forgotPassword"
+          }
         },
         {
-          "name": "CMS - Testimonials",
-          "item": [
-            {
-              "name": "Get All Testimonials",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwt_token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/admin/testimonials",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "admin",
-                    "testimonials"
-                  ]
-                }
-              }
-            }
-          ]
+          "name": "POST Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"password\": \"newpassword123\"\n}" },
+            "url": "{{baseUrl}}/api/admin/auth/resetPassword/:token"
+          }
         },
         {
-          "name": "CMS - Email Templates",
-          "item": [
-            {
-              "name": "Get All Email Templates",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwt_token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/admin/email-templates",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "admin",
-                    "email-templates"
-                  ]
-                }
-              }
-            }
-          ]
+          "name": "GET Profile",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/auth/profile" }
+        },
+        {
+          "name": "PATCH Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Super Admin\"\n}" },
+            "url": "{{baseUrl}}/api/admin/auth/profile"
+          }
+        },
+        {
+          "name": "PATCH Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"123123123\",\n  \"newPassword\": \"123123123\"\n}" },
+            "url": "{{baseUrl}}/api/admin/auth/change-password"
+          }
         }
       ]
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "const url = pm.request.url.toString();",
-          "if (url.includes('/admin') && !url.includes('/login') && !url.includes('/resetPassword') && !url.includes('/forgotPassword')) {",
-          "    const token = pm.collectionVariables.get('jwt_token');",
-          "    if (!token) console.warn('No JWT token found! Please login first.');",
-          "}"
-        ]
-      }
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:3000",
-      "type": "string"
     },
     {
-      "key": "jwt_token",
-      "value": "",
-      "type": "string"
+      "name": "Admin — Dashboard",
+      "item": [
+        {
+          "name": "GET Dashboard",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/dashboard?from=2026-01-01&to=2026-12-31" }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Inquiries",
+      "item": [
+        {
+          "name": "GET List (filter status)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/inquiries?page=1&limit=10&status=PENDING" }
+        },
+        {
+          "name": "GET By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/inquiries/{{inquiryId}}" }
+        },
+        {
+          "name": "PATCH Update (notes)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Called customer\"\n}" },
+            "url": "{{baseUrl}}/api/admin/inquiries/{{inquiryId}}"
+          }
+        },
+        {
+          "name": "PATCH Status DONE",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"DONE\"\n}" },
+            "url": "{{baseUrl}}/api/admin/inquiries/{{inquiryId}}/status"
+          }
+        },
+        {
+          "name": "PATCH Status PENDING",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"PENDING\"\n}" },
+            "url": "{{baseUrl}}/api/admin/inquiries/{{inquiryId}}/status"
+          }
+        },
+        {
+          "name": "DELETE Soft Delete",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/inquiries/{{inquiryId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Vendors",
+      "item": [
+        {
+          "name": "GET List All",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/vendors?page=1&limit=10" }
+        },
+        {
+          "name": "GET List Hotels",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/vendors?type=Hotel" }
+        },
+        {
+          "name": "GET List Restaurants",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/vendors?type=Restaurant" }
+        },
+        {
+          "name": "GET By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/vendors/{{vendorId}}" }
+        },
+        {
+          "name": "POST Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Hotel X\",\n  \"type\": \"Hotel\",\n  \"pricing\": 2500,\n  \"contactInfo\": \"+91 9999999999\"\n}" },
+            "url": "{{baseUrl}}/api/admin/vendors"
+          }
+        },
+        {
+          "name": "PATCH Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"pricing\": 3000\n}" },
+            "url": "{{baseUrl}}/api/admin/vendors/{{vendorId}}"
+          }
+        },
+        {
+          "name": "DELETE Soft Delete",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/vendors/{{vendorId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Trips",
+      "item": [
+        {
+          "name": "GET List",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/trips?page=1&limit=10" }
+        },
+        {
+          "name": "GET By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/trips/{{tripId}}" }
+        },
+        {
+          "name": "POST Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customerName\": \"John Doe\",\n  \"customerContact\": \"john@mail.com\",\n  \"totalCost\": 15000,\n  \"title\": \"Jaipur Heritage Tour\",\n  \"description\": \"3 day curated trip\",\n  \"isEnabled\": false\n}" },
+            "url": "{{baseUrl}}/api/admin/trips"
+          }
+        },
+        {
+          "name": "PATCH Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"totalCost\": 18000,\n  \"status\": \"Confirmed\"\n}" },
+            "url": "{{baseUrl}}/api/admin/trips/{{tripId}}"
+          }
+        },
+        {
+          "name": "PATCH Enable (website)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isEnabled\": true\n}" },
+            "url": "{{baseUrl}}/api/admin/trips/{{tripId}}/enable"
+          }
+        },
+        {
+          "name": "PATCH Disable (website)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isEnabled\": false\n}" },
+            "url": "{{baseUrl}}/api/admin/trips/{{tripId}}/enable"
+          }
+        },
+        {
+          "name": "DELETE Soft Delete",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/trips/{{tripId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Itineraries",
+      "item": [
+        {
+          "name": "POST Create / Upsert",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"tripId\": \"{{tripId}}\",\n  \"days\": [\n    { \"day\": 1, \"activity\": \"Amber Fort\", \"timing\": \"9 AM\", \"location\": \"Jaipur\" },\n    { \"day\": 2, \"activity\": \"City Palace\", \"timing\": \"10 AM\", \"location\": \"Jaipur\" }\n  ]\n}" },
+            "url": "{{baseUrl}}/api/admin/itineraries"
+          }
+        },
+        {
+          "name": "GET By Trip ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/itineraries/trip/{{tripId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Payments",
+      "item": [
+        {
+          "name": "GET List",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/payments?page=1&limit=10" }
+        },
+        {
+          "name": "GET By Trip",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/payments/trip/{{tripId}}" }
+        },
+        {
+          "name": "POST Record Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"tripId\": \"{{tripId}}\",\n  \"amount\": 5000,\n  \"type\": \"Token\"\n}" },
+            "url": "{{baseUrl}}/api/admin/payments"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Invoices",
+      "item": [
+        {
+          "name": "GET Generate By Trip",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/invoices/{{tripId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Packages",
+      "item": [
+        {
+          "name": "GET List",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/packages?page=1&limit=10" }
+        },
+        {
+          "name": "GET List Active",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/packages?status=active" }
+        },
+        {
+          "name": "GET By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/packages/{{packageId}}" }
+        },
+        {
+          "name": "POST Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Jaipur Explorer\",\n  \"price\": 9999,\n  \"duration\": \"3D/2N\",\n  \"status\": \"active\",\n  \"description\": \"Popular package\"\n}" },
+            "url": "{{baseUrl}}/api/admin/packages"
+          }
+        },
+        {
+          "name": "PATCH Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"inactive\"\n}" },
+            "url": "{{baseUrl}}/api/admin/packages/{{packageId}}"
+          }
+        },
+        {
+          "name": "DELETE Soft Delete",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/packages/{{packageId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Contacts",
+      "item": [
+        {
+          "name": "GET List",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/contacts?page=1&limit=10" }
+        },
+        {
+          "name": "DELETE Soft Delete",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/contacts/:id" }
+        }
+      ]
+    },
+    {
+      "name": "Admin — CMS",
+      "item": [
+        {
+          "name": "Content — GET All Sections",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/cms" }
+        },
+        {
+          "name": "Content — PUT Save Section",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"section\": \"Hero Section\",\n  \"data\": { \"headline\": \"Plan Your Jaipur Trip\" }\n}" },
+            "url": "{{baseUrl}}/api/admin/cms"
+          }
+        },
+        {
+          "name": "Testimonials — GET List",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/cms/testimonials" }
+        },
+        {
+          "name": "Testimonials — PATCH Enable",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isEnabled\": true\n}" },
+            "url": "{{baseUrl}}/api/admin/cms/testimonials/:id"
+          }
+        },
+        {
+          "name": "Testimonials — DELETE",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/cms/testimonials/:id" }
+        },
+        {
+          "name": "FAQs — GET List",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/cms/faqs" }
+        },
+        {
+          "name": "FAQs — POST Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"question\": \"Best time to visit?\",\n  \"answer\": \"October to March\",\n  \"order\": 1\n}" },
+            "url": "{{baseUrl}}/api/admin/cms/faqs"
+          }
+        },
+        {
+          "name": "FAQs — PATCH Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isEnabled\": true\n}" },
+            "url": "{{baseUrl}}/api/admin/cms/faqs/:id"
+          }
+        },
+        {
+          "name": "FAQs — DELETE",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/cms/faqs/:id" }
+        },
+        {
+          "name": "Email Templates — GET List",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/cms/email-templates" }
+        },
+        {
+          "name": "Email Templates — POST Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Custom\",\n  \"slug\": \"custom-slug\",\n  \"subject\": \"Hello\",\n  \"description\": \"<p>Hi {{name}}</p>\"\n}" },
+            "url": "{{baseUrl}}/api/admin/cms/email-templates"
+          }
+        },
+        {
+          "name": "Email Templates — PATCH Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isEnabled\": true\n}" },
+            "url": "{{baseUrl}}/api/admin/cms/email-templates/:id"
+          }
+        },
+        {
+          "name": "Email Templates — DELETE",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/cms/email-templates/:id" }
+        }
+      ]
+    },
+    {
+      "name": "Website — Public",
+      "item": [
+        {
+          "name": "POST Submit Inquiry",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customerName\": \"Jane\",\n  \"contact\": \"jane@mail.com\",\n  \"destinationInterest\": \"Jaipur\",\n  \"travelDates\": \"2026-12-01\"\n}" },
+            "url": "{{baseUrl}}/api/v1/website/inquiries"
+          }
+        },
+        {
+          "name": "GET Packages",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/packages" }
+        },
+        {
+          "name": "GET Package By ID",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/packages/{{packageId}}" }
+        },
+        {
+          "name": "GET Trips (enabled only)",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/trips?page=1&limit=10" }
+        },
+        {
+          "name": "GET Trip By ID (enabled only)",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/trips/{{tripId}}" }
+        },
+        {
+          "name": "POST Contact Us",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Bob\",\n  \"email\": \"bob@mail.com\",\n  \"message\": \"Hello\"\n}" },
+            "url": "{{baseUrl}}/api/v1/website/contact"
+          }
+        },
+        {
+          "name": "GET Testimonials",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/testimonials" }
+        },
+        {
+          "name": "POST Submit Testimonial",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Alice\",\n  \"email\": \"alice@mail.com\",\n  \"rating\": 5,\n  \"description\": \"Amazing trip!\"\n}" },
+            "url": "{{baseUrl}}/api/v1/website/testimonials"
+          }
+        },
+        {
+          "name": "GET FAQs",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/faqs" }
+        },
+        {
+          "name": "GET CMS Section",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/cms/Hero Section" }
+        }
+      ]
+    },
+    {
+      "name": "Legacy paths (optional)",
+      "item": [
+        {
+          "name": "POST Login /api/v1/admin",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"mohit@mailinator.com\",\n  \"password\": \"123123123\"\n}" },
+            "url": "{{baseUrl}}/api/v1/admin/auth/login"
+          }
+        },
+        {
+          "name": "GET Dashboard /admin",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/dashboard" }
+        }
+      ]
     }
   ]
 }

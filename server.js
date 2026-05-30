@@ -1,69 +1,30 @@
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const { errorHandler } = require('./middlewares/errorHandler');
-const AppError = require('./utils/AppError');
-const { protect, restrictTo } = require('./middlewares/auth');
-const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
+const app = require('./src/app');
 
-// Route imports
-const websiteRoutes = require('./routes/website');
-const adminRoutes = require('./routes/admin');
+const start = async () => {
+  if (!process.env.MONGO_URI) {
+    throw new Error('MONGO_URI is not set in .env');
+  }
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not set in .env');
+  }
 
-dotenv.config();
+  if (process.env.NODE_ENV !== 'test') {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('DB connection successful');
+  }
 
-const app = express();
-
-// Security Middlewares
-app.use(helmet());
-app.use(cors());
-app.use(morgan('dev'));
-
-// Rate Limiting
-const limiter = rateLimit({
-  max: 100, // limit each IP to 100 requests per windowMs
-  windowMs: 60 * 60 * 1000, // 1 Hour
-  message: 'Too many requests from this IP, please try again in an hour!'
-});
-app.use('/api', limiter);
-app.use('/api/health', (req, res) => {
-  res.status(200).json({ message: 'Server is running OK' });
-});
-
-app.use(express.json({ limit: '10kb' }));
-app.use(cookieParser());
-
-// Database Connection
-if (process.env.NODE_ENV !== 'test') {
-  mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('DB connection successful!'))
-    .catch((err) => console.log('DB connection error:', err));
-}
-
-// Routes Definition
-// 1. Website (Public APIs)
-app.use('/api/v1/website', websiteRoutes);
-
-// 2. Admin (Protected & Public Auth APIs)
-app.use('/api/v1/admin', adminRoutes);
-
-// Undefined Route Handler
-app.use((req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-});
-
-// Global Error Handler
-app.use(errorHandler);
-
-// Start server locally if run directly
-if (require.main === module) {
   const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}...`);
+  app.listen(port, () => console.log(`Server running on port ${port}`));
+};
+
+if (require.main === module) {
+  start().catch((err) => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
   });
 }
 
