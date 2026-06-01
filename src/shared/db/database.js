@@ -14,6 +14,8 @@ const {
 let connectionEventsRegistered = false;
 let queryDebugEnabled = false;
 let pluginsRegistered = false;
+
+/** Shared in-flight connect promise — safe for concurrent serverless invocations. */
 let connectPromise = null;
 
 const logConnectionState = (label) => {
@@ -97,9 +99,6 @@ const enableQueryDebug = () => {
   });
 };
 
-/**
- * Admin model → `users` collection (equivalent to User.findOne in this codebase).
- */
 const registerAdminFindOneLogging = () => {
   try {
     const Admin = require('../../modules/admin/admin.model');
@@ -241,25 +240,47 @@ const getDbDiagnostics = () => {
   };
 };
 
+/**
+ * Serverless-safe MongoDB connect:
+ * - Reuses open connection (readyState === 1)
+ * - Deduplicates concurrent connect attempts via shared promise
+ * - Does not disconnect between requests
+ */
 const connectDatabase = async () => {
+  if (process.env.NODE_ENV === 'test') {
+    return mongoose.connection;
+  }
+
   registerPlugins();
 
-  if (mongoose.connection.readyState === 1) {
-    db('connectDatabase skipped — already connected');
+  const readyState = mongoose.connection.readyState;
+
+  if (readyState === 1) {
+    db('reusing cached MongoDB connection', {
+      readyState,
+      state: getMongooseStateLabel(readyState),
+      host: mongoose.connection.host,
+      database: mongoose.connection.name,
+      timestamp: ts(),
+    });
     return mongoose.connection;
   }
 
   if (connectPromise) {
-    db('connectDatabase — awaiting in-flight connection', { readyState: mongoose.connection.readyState });
+    db('connectDatabase — awaiting in-flight connection (concurrent-safe)', {
+      readyState,
+      state: getMongooseStateLabel(readyState),
+      timestamp: ts(),
+    });
     return connectPromise;
   }
 
-  db('connection initialization started', {
+  db('connection initialization started — creating new connection', {
     timestamp: ts(),
     mongoUriExists: Boolean(process.env.MONGO_URI),
     nodeEnv: process.env.NODE_ENV || null,
     vercelEnv: process.env.VERCEL_ENV || null,
-    readyState: mongoose.connection.readyState,
+    readyState,
   });
 
   logMongoUriDiagnostics();
@@ -282,9 +303,12 @@ const connectDatabase = async () => {
         timestamp: ts(),
       });
 
-      await mongoose.connect(process.env.MONGO_URI);
+      await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 15000,
+        maxPoolSize: 10,
+      });
 
-      db('immediately after successful mongoose.connect()', {
+      db('immediately after successful mongoose.connect() — new connection established', {
         readyState: mongoose.connection.readyState,
         state: getMongooseStateLabel(mongoose.connection.readyState),
         host: mongoose.connection.host,
@@ -303,17 +327,19 @@ const connectDatabase = async () => {
         readyState: mongoose.connection.readyState,
         state: getMongooseStateLabel(mongoose.connection.readyState),
         atlasReachabilityHint:
-          'If error mentions timeout/ENOTFOUND, check Atlas IP allowlist (0.0.0.0/0 for Vercel) and MONGO_URI in Vercel env',
+          'Check Atlas IP allowlist (0.0.0.0/0 for Vercel) and MONGO_URI in Vercel env vars',
       });
       logConnectionState('after-connect-failure');
-      throw err;
-    } finally {
       connectPromise = null;
+      throw err;
     }
   })();
 
   return connectPromise;
 };
+
+/** Alias used by connection middleware. */
+const ensureDatabaseConnection = connectDatabase;
 
 const logStartupEnvironment = () => {
   printStartupDiagnostics();
@@ -324,13 +350,14 @@ const logStartupEnvironment = () => {
     vercel: process.env.VERCEL || '0',
     vercelEnv: process.env.VERCEL_ENV || '(not set)',
     vercelRegion: process.env.VERCEL_REGION || '(not set)',
-    isMainModule: require.main === module,
     mongoUriExists: Boolean(process.env.MONGO_URI),
+    deploymentMode: process.env.VERCEL ? 'vercel-serverless' : 'node-process',
   });
 };
 
 module.exports = {
   connectDatabase,
+  ensureDatabaseConnection,
   registerPlugins,
   registerAdminFindOneLogging,
   logConnectionState,

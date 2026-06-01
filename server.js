@@ -1,10 +1,15 @@
+/**
+ * Application entrypoint — works locally and on Vercel serverless.
+ *
+ * Database connection is NOT tied to require.main or listen().
+ * All routes use ensureDbConnection middleware in src/app.js.
+ */
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const {
   connectDatabase,
   logStartupEnvironment,
-  logConnectionState,
   registerPlugins,
   printStartupDiagnostics,
 } = require('./src/shared/db/database');
@@ -16,21 +21,16 @@ logStartupEnvironment();
 
 const app = require('./src/app');
 
-const start = async () => {
-  startup('server initialization — start', { timestamp: new Date().toISOString() });
+/**
+ * Local development: start HTTP server.
+ * Optional eager connect reduces latency on first request.
+ */
+const startLocalServer = async () => {
+  startup('local HTTP server — starting');
 
   if (!process.env.MONGO_URI) {
     const err = new Error('MONGO_URI is not set in .env');
-    logError('server initialization failed', err, {
-      errorMessage: err.message,
-      errorName: err.name,
-      stack: err.stack,
-    });
-    throw err;
-  }
-  if (!process.env.JWT_SECRET) {
-    const err = new Error('JWT_SECRET is not set in .env');
-    logError('server initialization failed', err, {
+    logError('local server startup failed', err, {
       errorMessage: err.message,
       errorName: err.name,
       stack: err.stack,
@@ -41,9 +41,9 @@ const start = async () => {
   if (process.env.NODE_ENV !== 'test') {
     try {
       await connectDatabase();
-      startup('database connection phase — completed');
+      startup('local server — eager database connect completed');
     } catch (err) {
-      logError('database connection phase — failed', err, {
+      logError('local server — eager database connect failed', err, {
         errorMessage: err.message,
         errorName: err.name,
         stack: err.stack,
@@ -52,17 +52,15 @@ const start = async () => {
     }
   }
 
-  logConnectionState('before-http-listen');
-
   const port = process.env.PORT || 3000;
   app.listen(port, () => {
-    startup('HTTP server listening', { port });
+    startup('HTTP server listening', { port, mode: 'local' });
   });
 };
 
 if (require.main === module) {
-  start().catch((err) => {
-    logError('fatal startup error', err, {
+  startLocalServer().catch((err) => {
+    logError('fatal local startup error', err, {
       errorMessage: err.message,
       errorName: err.name,
       stack: err.stack,
@@ -70,11 +68,11 @@ if (require.main === module) {
     process.exit(1);
   });
 } else {
-  startup('server.js loaded as module (Vercel/serverless import)', {
+  startup('app exported for serverless (Vercel)', {
     vercel: process.env.VERCEL,
     vercelEnv: process.env.VERCEL_ENV,
     mongoUriExists: Boolean(process.env.MONGO_URI),
-    note: 'If connectDatabase() is not awaited before requests, queries buffer and timeout after 10000ms — check GET /api/debug/db',
+    note: 'DB connects via ensureDbConnection middleware on each request that needs it',
   });
 }
 

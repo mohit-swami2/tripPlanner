@@ -18,6 +18,7 @@ const mongoose = require('mongoose');
 const corsMiddleware = require('./shared/middleware/cors');
 const logger = require('./shared/middleware/logger');
 const apiRequestLogger = require('./shared/middleware/apiRequestLogger');
+const ensureDbConnection = require('./shared/middleware/ensureDbConnection');
 const errorHandler = require('./shared/middleware/errorHandler');
 const { sendSuccess } = require('./shared/utils/response');
 const adminRoutes = require('./routes/admin');
@@ -37,6 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/public', express.static(path.join(process.cwd(), 'public')));
 
+/** No DB required — reports process health only. */
 app.get('/health', (_req, res) => {
   const dbState = mongoose.connection.readyState;
   sendSuccess(res, 200, 'Server is running OK', [
@@ -51,12 +53,17 @@ app.get('/health', (_req, res) => {
   ]);
 });
 
-/** Temporary diagnostics — remove after debugging Vercel/MongoDB connection. */
+/** Diagnostics — runs through ensureDbConnection on /api/debug/db mount below. */
 const debugDbHandler = (_req, res) => {
   sendSuccess(res, 200, 'Database diagnostics', [getDbDiagnostics()]);
 };
-app.get('/api/debug/db', debugDbHandler);
-app.get('/debug/db', debugDbHandler);
+app.get('/api/debug/db', ensureDbConnection, debugDbHandler);
+app.get('/debug/db', ensureDbConnection, debugDbHandler);
+
+/**
+ * All API routes: wait for MongoDB before handlers (Vercel + local).
+ */
+app.use(ensureDbConnection);
 
 const mountAdmin = (base) => app.use(base, adminRoutes);
 const mountWebsite = (base) => app.use(base, websiteRoutes);
@@ -76,6 +83,9 @@ app.use(errorHandler);
 
 registerAdminFindOneLogging();
 
-startup('Express app — ready', { routeMounts: ['/api/admin', '/api/v1/website', '/health'] });
+startup('Express app — ready', {
+  routeMounts: ['/api/admin', '/api/v1/website', '/health'],
+  dbStrategy: 'ensureDbConnection middleware (serverless-safe)',
+});
 
 module.exports = app;

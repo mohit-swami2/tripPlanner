@@ -1,42 +1,24 @@
-# Vercel Debug Logs Guide
+# Vercel MongoDB Connection — Architecture & Logs
 
-## Where to view logs
+## How connection works now
 
-1. Open [Vercel Dashboard](https://vercel.com) → your project.
-2. **Deployments** → select the deployment → **Functions** tab.
-3. Click the function (e.g. `server.js`) → **Logs** (runtime / function logs).
-4. Or: **Logs** in the project sidebar (aggregated, filter by deployment).
+1. Vercel imports `server.js` → loads `src/app.js`.
+2. Every API request passes **`ensureDbConnection`** middleware (except `/health`, `/public`).
+3. Middleware calls **`connectDatabase()`**:
+   - **readyState === 1** → reuses cached connection (`[DB] reusing cached MongoDB connection`).
+   - **connect in flight** → awaits same promise (concurrent-safe).
+   - **disconnected** → `mongoose.connect()` once, then reuse.
 
-All `console.log` / `console.error` output appears here in near real time.
+Local `node server.js` still works: middleware + optional eager connect before `listen()`.
+
+## Debug endpoint
+
+`GET /api/debug/db` — should show `"connected": true` after first successful connect.
 
 ## Log prefixes
 
-| Prefix | Meaning |
-|--------|---------|
-| `[STARTUP]` | Boot, env, server listen |
-| `[DB]` | MongoDB URI checks, connect, state, queries |
-| `[API]` | HTTP requests (method, route, duration) |
-| `[AUTH]` | JWT + Admin/`users` collection lookups |
-| `[ERROR]` | Failures with stack traces |
+`[STARTUP]` `[DB]` `[API]` `[AUTH]` `[QUERY]` `[WARNING]` `[ERROR]`
 
-## What to look for (connection failures)
+## Where to view logs
 
-1. **`[DB] MONGO_URI exists`** — must be `{ "present": true }` on Vercel (set in Project → Settings → Environment Variables).
-2. **`[DB] MONGO_URI warning: double slash`** — fix URI like `mongodb.net//tripplanner` → `mongodb.net/tripplanner`.
-3. **`[DB] mongoose.connect — failure`** — full stack here; common causes: IP not allowlisted in Atlas, wrong password, wrong DB name.
-4. **`[DB] warning: request received but mongoose is not connected`** — connect did not run before the request (see note below).
-
-## Vercel + Express note
-
-`server.js` only calls `connectDatabase()` when started via `node server.js` (`require.main === module`).  
-On Vercel, the serverless entry often **imports** the app without running `start()`, so you may see:
-
-`[STARTUP] server.js loaded as module`  
-and  
-`[DB] warning: request received but mongoose is not connected`
-
-If that appears, ensure MongoDB connects on cold start (e.g. call `connectDatabase()` before exporting the handler). That is a deployment wiring issue, not logging.
-
-## Sensitive data
-
-Passwords and tokens are **never** logged. Request bodies are redacted in `[ERROR]` logs.
+Vercel Dashboard → Project → Deployments → Functions → `server.js` → **Logs**
