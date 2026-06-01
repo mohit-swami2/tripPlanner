@@ -5,6 +5,7 @@ const EmailTemplate = require('../cms/emailTemplate/emailTemplate.model');
 const { sendMail } = require('../../shared/utils/mailer');
 const { replacePlaceholders } = require('../../shared/utils/emailTemplate');
 const { notDeleted } = require('../../shared/utils/notDeleted');
+const { auth } = require('../../shared/utils/debugLogger');
 
 const signToken = (admin) => {
   if (!process.env.JWT_SECRET) {
@@ -16,10 +17,14 @@ const signToken = (admin) => {
 };
 
 const login = async (email, password) => {
+  auth('login — Admin.findOne by email (users collection)', { email });
   const admin = await Admin.findOne({ email, ...notDeleted }).select('+hashedPassword');
+  auth('login — findOne result', { found: Boolean(admin) });
   if (!admin || !(await admin.comparePassword(password))) {
+    auth('login — failed', { reason: admin ? 'invalid_password' : 'user_not_found' });
     throw { status: 401, message: 'Incorrect email or password' };
   }
+  auth('login — success', { adminId: String(admin._id) });
   return { admin, token: signToken(admin) };
 };
 

@@ -1,6 +1,14 @@
 const { sendError } = require('../utils/response');
+const { error, sanitizeBody } = require('../utils/debugLogger');
 
 const errorHandler = (err, req, res, _next) => {
+  error('global error handler', err, {
+    method: req.method,
+    path: req.originalUrl || req.url,
+    body: sanitizeBody(req.body),
+    statusCode: err?.status || err?.statusCode,
+  });
+
   if (err?.status) {
     return sendError(res, err.status, err.message, err.details);
   }
@@ -15,7 +23,6 @@ const errorHandler = (err, req, res, _next) => {
     return sendError(res, 400, `Invalid ${err.path}: ${err.value}`);
   }
 
-  console.error('ERROR:', err);
   return sendError(res, 500, err.message || 'Internal server error');
 };
 
