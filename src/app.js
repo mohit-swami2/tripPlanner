@@ -32,11 +32,14 @@ const app = express();
 app.use(helmet());
 app.use(corsMiddleware);
 app.use(logger);
-app.use(apiRequestLogger);
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/public', express.static(path.join(process.cwd(), 'public')));
+app.use('/public', express.static(path.join(process.cwd(), 'public'));
+
+/** Connect before request logging so [API] logs show readyState 1 when connected. */
+app.use(ensureDbConnection);
+app.use(apiRequestLogger);
 
 /** No DB required — reports process health only. */
 app.get('/health', (_req, res) => {
@@ -57,13 +60,8 @@ app.get('/health', (_req, res) => {
 const debugDbHandler = (_req, res) => {
   sendSuccess(res, 200, 'Database diagnostics', [getDbDiagnostics()]);
 };
-app.get('/api/debug/db', ensureDbConnection, debugDbHandler);
-app.get('/debug/db', ensureDbConnection, debugDbHandler);
-
-/**
- * All API routes: wait for MongoDB before handlers (Vercel + local).
- */
-app.use(ensureDbConnection);
+app.get('/api/debug/db', debugDbHandler);
+app.get('/debug/db', debugDbHandler);
 
 const mountAdmin = (base) => app.use(base, adminRoutes);
 const mountWebsite = (base) => app.use(base, websiteRoutes);

@@ -109,6 +109,16 @@ const logMongoUriDiagnostics = () => {
   if (hasDoubleSlash) {
     warning('Double slash before database name in MONGO_URI may cause Atlas connection failures');
   }
+
+  if (dbName === '(not parsed)' || dbName === '') {
+    warning(
+      'MONGO_URI has no database name after host (e.g. ...mongodb.net/mydb) — add /tripPlanner before ?options'
+    );
+  }
+
+  if (uri.length < 100) {
+    warning('MONGO_URI is unusually short — verify username, password, host, and database name in Vercel env');
+  }
 };
 
 module.exports = {

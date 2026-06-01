@@ -320,14 +320,20 @@ const connectDatabase = async () => {
       registerAdminFindOneLogging();
       return mongoose.connection;
     } catch (err) {
+      const isAuthFailure =
+        err?.code === 8000 ||
+        err?.codeName === 'AtlasError' ||
+        /auth/i.test(err?.message || '');
+
       error('mongoose.connect() failed', err, {
         errorMessage: err.message,
         errorName: err.name,
         stack: err.stack,
         readyState: mongoose.connection.readyState,
         state: getMongooseStateLabel(mongoose.connection.readyState),
-        atlasReachabilityHint:
-          'Check Atlas IP allowlist (0.0.0.0/0 for Vercel) and MONGO_URI in Vercel env vars',
+        atlasReachabilityHint: isAuthFailure
+          ? 'Authentication failed — wrong username/password in Vercel MONGO_URI, or password needs URL-encoding (e.g. @ → %40). Copy fresh URI from Atlas → Database → Connect → Drivers'
+          : 'Check Atlas IP allowlist (0.0.0.0/0 for Vercel) and MONGO_URI in Vercel env vars',
       });
       logConnectionState('after-connect-failure');
       connectPromise = null;
