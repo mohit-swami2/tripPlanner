@@ -1,7 +1,14 @@
-const { registerPlugins, logConnectionState, registerAdminFindOneLogging } = require('./shared/db/database');
+const {
+  registerPlugins,
+  logConnectionState,
+  registerAdminFindOneLogging,
+  printStartupDiagnostics,
+  getDbDiagnostics,
+} = require('./shared/db/database');
 const { startup } = require('./shared/utils/debugLogger');
 
 registerPlugins();
+printStartupDiagnostics();
 
 const express = require('express');
 const helmet = require('helmet');
@@ -43,6 +50,13 @@ app.get('/health', (_req, res) => {
     },
   ]);
 });
+
+/** Temporary diagnostics — remove after debugging Vercel/MongoDB connection. */
+const debugDbHandler = (_req, res) => {
+  sendSuccess(res, 200, 'Database diagnostics', [getDbDiagnostics()]);
+};
+app.get('/api/debug/db', debugDbHandler);
+app.get('/debug/db', debugDbHandler);
 
 const mountAdmin = (base) => app.use(base, adminRoutes);
 const mountWebsite = (base) => app.use(base, websiteRoutes);

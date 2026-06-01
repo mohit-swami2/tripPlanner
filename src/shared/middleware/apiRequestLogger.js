@@ -1,33 +1,29 @@
-const { api, db, getMongooseStateLabel } = require('../utils/debugLogger');
 const mongoose = require('mongoose');
+const { api, warning, getMongooseStateLabel, ts } = require('../utils/debugLogger');
 
-const PUBLIC_PREFIXES = ['/health', '/public'];
+const PUBLIC_PREFIXES = ['/health', '/public', '/api/debug/db', '/debug/db'];
 
 const usesDatabase = (path) => !PUBLIC_PREFIXES.some((p) => path.startsWith(p));
 
 const apiRequestLogger = (req, res, next) => {
-  const timestamp = new Date().toISOString();
+  const timestamp = ts();
   const route = req.originalUrl || req.url;
+  const readyState = mongoose.connection.readyState;
 
   api('incoming request', {
     method: req.method,
     route,
     timestamp,
-    ip: req.ip,
+    readyState,
+    state: getMongooseStateLabel(readyState),
   });
 
   if (usesDatabase(route)) {
-    api('route start — may access MongoDB', {
-      method: req.method,
-      route,
-      timestamp,
-    });
-
-    const readyState = mongoose.connection.readyState;
+    api('route start — may access MongoDB', { method: req.method, route, timestamp });
     if (readyState !== 1) {
-      db('warning: request received but mongoose is not connected', {
-        method: req.method,
+      warning('Database not connected before query execution', {
         route,
+        method: req.method,
         readyState,
         state: getMongooseStateLabel(readyState),
       });
@@ -41,7 +37,7 @@ const apiRequestLogger = (req, res, next) => {
       route,
       statusCode: res.statusCode,
       durationMs: Date.now() - start,
-      timestamp: new Date().toISOString(),
+      readyState: mongoose.connection.readyState,
     });
   });
 

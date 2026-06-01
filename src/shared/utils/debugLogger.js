@@ -1,6 +1,6 @@
 /**
  * Vercel-friendly structured logs (console.log → Function Logs).
- * Prefixes: [STARTUP] [DB] [API] [AUTH] [ERROR]
+ * Prefixes: [STARTUP] [DB] [API] [AUTH] [QUERY] [WARNING] [ERROR]
  */
 
 const SENSITIVE_KEYS = new Set([
@@ -48,6 +48,8 @@ const startup = (message, meta) => log('STARTUP', message, meta);
 const db = (message, meta) => log('DB', message, meta);
 const api = (message, meta) => log('API', message, meta);
 const auth = (message, meta) => log('AUTH', message, meta);
+const query = (message, meta) => log('QUERY', message, meta);
+const warning = (message, meta) => log('WARNING', message, meta);
 const error = (message, err, meta) => logError('ERROR', message, err, meta);
 
 const sanitizeBody = (body) => {
@@ -80,7 +82,12 @@ const getMongooseStateLabel = (state) => {
 /** Safe MongoDB URI diagnostics — never logs credentials or full URI. */
 const logMongoUriDiagnostics = () => {
   const uri = process.env.MONGO_URI;
-  db('MONGO_URI exists', { present: Boolean(uri) });
+  db('MONGO_URI exists', {
+    present: Boolean(uri),
+    timestamp: ts(),
+    nodeEnv: process.env.NODE_ENV || null,
+    vercelEnv: process.env.VERCEL_ENV || null,
+  });
   if (!uri) return;
 
   let hostHint = 'unknown';
@@ -100,7 +107,7 @@ const logMongoUriDiagnostics = () => {
   });
 
   if (hasDoubleSlash) {
-    db('MONGO_URI warning: double slash before database name may cause connection issues');
+    warning('Double slash before database name in MONGO_URI may cause Atlas connection failures');
   }
 };
 
@@ -109,8 +116,11 @@ module.exports = {
   db,
   api,
   auth,
+  query,
+  warning,
   error,
   sanitizeBody,
   getMongooseStateLabel,
   logMongoUriDiagnostics,
+  ts,
 };
