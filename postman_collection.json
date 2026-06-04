@@ -10,7 +10,9 @@
     { "key": "inquiryId", "value": "" },
     { "key": "tripId", "value": "" },
     { "key": "vendorId", "value": "" },
-    { "key": "packageId", "value": "" }
+    { "key": "packageId", "value": "" },
+    { "key": "bannerId", "value": "" },
+    { "key": "uploadKey", "value": "" }
   ],
   "auth": {
     "type": "bearer",
@@ -88,6 +90,46 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"123123123\",\n  \"newPassword\": \"123123123\"\n}" },
             "url": "{{baseUrl}}/api/admin/auth/change-password"
+          }
+        },
+        {
+          "name": "PATCH Profile Image (multipart)",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/admin/auth/profile/image"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Upload (S3)",
+      "item": [
+        {
+          "name": "POST Upload File",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const j = pm.response.json();",
+                "if (j.data?.[0]?.key) pm.collectionVariables.set('uploadKey', j.data[0].key);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/admin/upload"
           }
         }
       ]
@@ -426,6 +468,108 @@
         {
           "name": "Email Templates — DELETE",
           "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/cms/email-templates/:id" }
+        },
+        {
+          "name": "Master Banners — GET List",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/cms/master-banners?page=1&limit=20" }
+        },
+        {
+          "name": "Master Banners — POST Save",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const j = pm.response.json();",
+                "const id = j.data?.[0]?._id || j.data?.[0]?.id;",
+                "if (id) pm.collectionVariables.set('bannerId', id);",
+                "if (j.data?.[0]?.key) pm.collectionVariables.set('uploadKey', j.data[0].key);",
+                "if (j.data?.[0]?.image) pm.collectionVariables.set('uploadKey', j.data[0].image);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "title", "value": "Summer Promo", "type": "text" },
+                { "key": "linkUrl", "value": "https://example.com/trips", "type": "text" },
+                { "key": "isEnabled", "value": "true", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/admin/cms/master-banners"
+          }
+        },
+        {
+          "name": "Master Banners — POST Save (image key)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const j = pm.response.json();",
+                "const id = j.data?.[0]?._id || j.data?.[0]?.id;",
+                "if (id) pm.collectionVariables.set('bannerId', id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Winter Promo\",\n  \"image\": \"{{uploadKey}}\",\n  \"linkUrl\": \"/packages\",\n  \"isEnabled\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/cms/master-banners"
+          }
+        },
+        {
+          "name": "Master Banners — PATCH Update",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "Updated Banner Title", "type": "text" },
+                { "key": "linkUrl", "value": "https://example.com", "type": "text" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/admin/cms/master-banners/{{bannerId}}"
+          }
+        },
+        {
+          "name": "Master Banners — PATCH Sequence",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderedIds\": [\"{{bannerId}}\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/cms/master-banners/sequence"
+          }
+        },
+        {
+          "name": "Master Banners — PATCH Enable",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isEnabled\": true\n}" },
+            "url": "{{baseUrl}}/api/admin/cms/master-banners/{{bannerId}}/status"
+          }
+        },
+        {
+          "name": "Master Banners — PATCH Disable",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isEnabled\": false\n}" },
+            "url": "{{baseUrl}}/api/admin/cms/master-banners/{{bannerId}}/status"
+          }
+        },
+        {
+          "name": "Master Banners — DELETE",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/admin/cms/master-banners/{{bannerId}}" }
         }
       ]
     },
@@ -489,6 +633,14 @@
         {
           "name": "GET CMS Section",
           "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/cms/Hero Section" }
+        },
+        {
+          "name": "GET Master Banners (enabled)",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/website/master-banners" }
+        },
+        {
+          "name": "GET Master Banners (legacy v1)",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/v1/website/master-banners" }
         }
       ]
     },

@@ -13,6 +13,7 @@ const invoiceRoutes = require('../../modules/invoice/invoice.routes');
 const packageRoutes = require('../../modules/package/package.admin.routes');
 const cmsRoutes = require('../../modules/cms/cms.admin.routes');
 const contactRoutes = require('../../modules/contactUs/contactUs.admin.routes');
+const uploadRoutes = require('../../modules/upload/upload.routes');
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/invoices', invoiceRoutes);
 router.use('/packages', packageRoutes);
 router.use('/cms', cmsRoutes);
 router.use('/contacts', contactRoutes);
+router.use('/upload', uploadRoutes);
 
 module.exports = router;

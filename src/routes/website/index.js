@@ -6,6 +6,7 @@ const contactRoutes = require('../../modules/contactUs/contactUs.website.routes'
 const testimonialRoutes = require('../../modules/cms/testimonial/testimonial.website.routes');
 const faqRoutes = require('../../modules/cms/faq/faq.website.routes');
 const cmsRoutes = require('../../modules/cms/content/content.website.routes');
+const masterBannerRoutes = require('../../modules/cms/masterBanner/masterBanner.website.routes');
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/contact', contactRoutes);
 router.use('/testimonials', testimonialRoutes);
 router.use('/faqs', faqRoutes);
 router.use('/cms', cmsRoutes);
+router.use('/master-banners', masterBannerRoutes);
 
 module.exports = router;

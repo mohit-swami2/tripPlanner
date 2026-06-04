@@ -22,6 +22,11 @@ const errorHandler = (err, req, res, _next) => {
   if (err.name === 'CastError') {
     return sendError(res, 400, `Invalid ${err.path}: ${err.value}`);
   }
+  if (err.name === 'MulterError') {
+    const message =
+      err.code === 'LIMIT_FILE_SIZE' ? 'File too large' : err.message || 'Upload failed';
+    return sendError(res, 400, message);
+  }
 
   return sendError(res, 500, err.message || 'Internal server error');
 };

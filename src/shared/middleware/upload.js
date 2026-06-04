@@ -3,11 +3,13 @@ const path = require('path');
 
 const memoryStorage = multer.memoryStorage();
 
-const maxSizeMb = Number(process.env.PROFILE_IMAGE_MAX_SIZE_MB) || 5;
+const maxFileSize =
+  Number(process.env.MAX_FILE_SIZE) ||
+  (Number(process.env.PROFILE_IMAGE_MAX_SIZE_MB) || 5) * 1024 * 1024;
 
 const upload = multer({
   storage: memoryStorage,
-  limits: { fileSize: maxSizeMb * 1024 * 1024 },
+  limits: { fileSize: maxFileSize },
   fileFilter(_req, file, cb) {
     const allowed = /jpeg|jpg|png|webp|pdf/;
     const ext = allowed.test(path.extname(file.originalname).toLowerCase());

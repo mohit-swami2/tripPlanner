@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { validate } = require('../../shared/middleware/validate');
 const { protect } = require('../../shared/middleware/auth');
+const { upload } = require('../../shared/middleware/upload');
 const controller = require('./admin.controller');
 const schemas = require('./admin.schemas');
 
@@ -13,6 +14,7 @@ router.post('/resetPassword/:token', validate(schemas.resetPasswordSchema), cont
 router.use(protect);
 router.get('/profile', controller.getProfile);
 router.patch('/profile', validate(schemas.updateProfileSchema), controller.updateProfile);
+router.patch('/profile/image', upload.single('file'), controller.uploadProfileImage);
 router.patch('/change-password', validate(schemas.changePasswordSchema), controller.changePassword);
 
 module.exports = router;

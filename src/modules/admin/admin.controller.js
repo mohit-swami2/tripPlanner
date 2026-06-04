@@ -1,5 +1,6 @@
 const catchAsync = require('../../shared/utils/catchAsync');
 const { sendSuccess } = require('../../shared/utils/response');
+const { persistUpload, resolveFileUrlsDeep } = require('../../shared/utils/fileUrl');
 const adminService = require('./admin.service');
 
 const login = catchAsync(async (req, res, next) => {
@@ -39,12 +40,23 @@ const resetPassword = catchAsync(async (req, res, next) => {
 const getProfile = catchAsync(async (req, res, next) => {
   const admin = await adminService.getProfile(req.admin._id);
   if (!admin) return next({ status: 404, message: 'Profile not found' });
-  sendSuccess(res, 200, 'Profile fetched', [admin]);
+  const data = await resolveFileUrlsDeep(req, admin);
+  sendSuccess(res, 200, 'Profile fetched', [data]);
 });
 
 const updateProfile = catchAsync(async (req, res, next) => {
   const admin = await adminService.updateProfile(req.admin._id, req.body);
-  sendSuccess(res, 200, 'Profile updated', [admin]);
+  const data = await resolveFileUrlsDeep(req, admin);
+  sendSuccess(res, 200, 'Profile updated', [data]);
+});
+
+const uploadProfileImage = catchAsync(async (req, res, next) => {
+  if (!req.file) return next({ status: 400, message: 'No file uploaded' });
+
+  const profileImage = await persistUpload(req.file);
+  const admin = await adminService.updateProfile(req.admin._id, { profileImage });
+  const data = await resolveFileUrlsDeep(req, admin);
+  sendSuccess(res, 200, 'Profile image uploaded', [data]);
 });
 
 const changePassword = catchAsync(async (req, res, next) => {
@@ -56,4 +68,12 @@ const changePassword = catchAsync(async (req, res, next) => {
   }
 });
 
-module.exports = { login, forgotPassword, resetPassword, getProfile, updateProfile, changePassword };
+module.exports = {
+  login,
+  forgotPassword,
+  resetPassword,
+  getProfile,
+  updateProfile,
+  uploadProfileImage,
+  changePassword,
+};
