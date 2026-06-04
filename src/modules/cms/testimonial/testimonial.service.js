@@ -1,17 +1,35 @@
 const Testimonial = require('./testimonial.model');
-const { buildQueryFilter, facetPaginate } = require('../../../shared/utils/queryBuilder');
+const { buildQueryFilter } = require('../../../shared/utils/queryBuilder');
 const { getPaginationOptions, buildPaginationExtras } = require('../../../shared/utils/pagination');
+const { normalizeMongoDoc } = require('../../../shared/utils/serializeDoc');
+
+const notDeleted = { isDeleted: false };
 
 const list = async (query, { publicOnly = false } = {}) => {
-  const { page, limit, sortBy, sortOrder, skip, sortStage } = getPaginationOptions(query);
-  const match = buildQueryFilter(query, Testimonial);
+  const { page, limit, sortBy, sortOrder, skip } = getPaginationOptions(query);
+  const match = { ...buildQueryFilter(query, Testimonial), ...notDeleted };
   if (publicOnly) match.isEnabled = true;
-  const [result] = await Testimonial.aggregate(facetPaginate({ match, sortStage, skip, limit }));
-  const total = result?.total || 0;
-  return { data: result?.data || [], ...buildPaginationExtras({ page, limit, sortBy, sortOrder, total }) };
+
+  const sort = { [sortBy]: sortOrder === 1 ? 1 : -1 };
+
+  const [rows, total] = await Promise.all([
+    Testimonial.find(match).sort(sort).skip(skip).limit(limit).lean(),
+    Testimonial.countDocuments(match),
+  ]);
+
+  return {
+    data: rows.map(normalizeMongoDoc),
+    ...buildPaginationExtras({ page, limit, sortBy, sortOrder, total }),
+  };
 };
 
 const submit = (data) => Testimonial.create({ ...data, isEnabled: false });
+
+const create = (data) =>
+  Testimonial.create({
+    ...data,
+    isEnabled: data.isEnabled !== undefined ? data.isEnabled : true,
+  });
 
 const update = async (id, data) => {
   const item = await Testimonial.findOneAndUpdate({ _id: id, isDeleted: false }, data, { new: true });
@@ -25,4 +43,4 @@ const softDelete = async (id) => {
   return item;
 };
 
-module.exports = { list, submit, update, softDelete };
+module.exports = { list, submit, create, update, softDelete };

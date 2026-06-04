@@ -25,11 +25,21 @@ const buildObjectKey = (originalName) => {
   return `${prefix}/${filename}`;
 };
 
-const isStoredObjectKey = (value) =>
-  typeof value === 'string' &&
-  value.length > 0 &&
-  !value.startsWith('http://') &&
-  !value.startsWith('https://');
+const UPLOAD_KEY_PREFIXES = () => {
+  const prefix = getUploadPrefix();
+  return new Set([prefix, 'uploads', 'uploads2']);
+};
+
+const isStoredObjectKey = (value) => {
+  if (typeof value !== 'string' || !value.length) return false;
+  if (value.startsWith('http://') || value.startsWith('https://')) return false;
+
+  const normalized = value.replace(/\\/g, '/').replace(/^\/+/, '');
+  const firstSegment = normalized.split('/')[0];
+  return UPLOAD_KEY_PREFIXES().has(firstSegment);
+};
+
+const SKIP_FILE_RESOLVE_KEYS = new Set(['_id', 'id', '__v', 'key']);
 
 const getFileUrl = async (req, relativePath) => {
   if (!relativePath) return null;
@@ -82,7 +92,10 @@ const resolveFileUrlsDeep = async (req, data) => {
 
   const plain = normalizeMongoDoc(data);
   const entries = await Promise.all(
-    Object.entries(plain).map(async ([key, value]) => [key, await resolveFileUrlsDeep(req, value)])
+    Object.entries(plain).map(async ([field, value]) => {
+      if (SKIP_FILE_RESOLVE_KEYS.has(field)) return [field, value];
+      return [field, await resolveFileUrlsDeep(req, value)];
+    })
   );
   return Object.fromEntries(entries);
 };

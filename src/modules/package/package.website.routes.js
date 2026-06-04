@@ -9,6 +9,6 @@ router.use((req, _res, next) => {
   next();
 });
 router.get('/', validate(schemas.listPackageSchema), controller.list);
-router.get('/:id', validate(schemas.updatePackageSchema.pick({ params: true })), controller.getOne);
+router.get('/:id', validate(schemas.packageIdParamSchema), controller.getOne);
 
 module.exports = router;
