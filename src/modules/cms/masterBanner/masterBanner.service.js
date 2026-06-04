@@ -1,6 +1,7 @@
 const MasterBanner = require('./masterBanner.model');
-const { buildQueryFilter, facetPaginate } = require('../../../shared/utils/queryBuilder');
+const { buildQueryFilter } = require('../../../shared/utils/queryBuilder');
 const { getPaginationOptions, buildPaginationExtras } = require('../../../shared/utils/pagination');
+const { normalizeMongoDoc } = require('../../../shared/utils/serializeDoc');
 
 const notDeleted = { isDeleted: false };
 
@@ -14,13 +15,18 @@ const list = async (query, { publicOnly = false } = {}) => {
   const match = { ...buildQueryFilter(query, MasterBanner), ...notDeleted };
   if (publicOnly) match.isEnabled = true;
 
-  const sortStage =
-    sortBy === 'createdAt' ? { sequence: 1, createdAt: -1 } : { [sortBy]: sortOrder === 1 ? 1 : -1 };
+  const sort =
+    sortBy === 'createdAt'
+      ? { sequence: 1, createdAt: -1 }
+      : { [sortBy]: sortOrder === 1 ? 1 : -1 };
 
-  const [result] = await MasterBanner.aggregate(facetPaginate({ match, sortStage, skip, limit }));
-  const total = result?.total || 0;
+  const [rows, total] = await Promise.all([
+    MasterBanner.find(match).sort(sort).skip(skip).limit(limit).lean(),
+    MasterBanner.countDocuments(match),
+  ]);
+
   return {
-    data: result?.data || [],
+    data: rows.map(normalizeMongoDoc),
     ...buildPaginationExtras({ page, limit, sortBy, sortOrder, total }),
   };
 };
@@ -60,7 +66,8 @@ const reorder = async (orderedIds) => {
   }));
 
   await MasterBanner.bulkWrite(ops);
-  return MasterBanner.find(notDeleted).sort({ sequence: 1, createdAt: -1 });
+  const rows = await MasterBanner.find(notDeleted).sort({ sequence: 1, createdAt: -1 }).lean();
+  return rows.map(normalizeMongoDoc);
 };
 
 const setStatus = async (id, isEnabled) => {

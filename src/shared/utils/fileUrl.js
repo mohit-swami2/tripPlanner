@@ -5,6 +5,7 @@ const {
   uploadObject,
   getPresignedGetUrl,
 } = require('../services/s3');
+const { normalizeMongoDoc } = require('./serializeDoc');
 
 const getUploadPrefix = () => {
   const raw = (process.env.UPLOAD_PATH || 'uploads2/').replace(/\\/g, '/');
@@ -79,7 +80,7 @@ const resolveFileUrlsDeep = async (req, data) => {
 
   if (typeof data !== 'object') return data;
 
-  const plain = typeof data.toObject === 'function' ? data.toObject() : { ...data };
+  const plain = normalizeMongoDoc(data);
   const entries = await Promise.all(
     Object.entries(plain).map(async ([key, value]) => [key, await resolveFileUrlsDeep(req, value)])
   );
