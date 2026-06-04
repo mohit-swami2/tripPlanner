@@ -17,7 +17,7 @@ const packageBody = z.object({
   description: z.string().optional(),
   highlights: z.array(z.string().min(1)).optional(),
   groupSize: z.string().optional(),
-  rating: z.coerce.number().min(0).max(5).optional(),
+  rating: z.coerce.number().min(0).max(10).optional(),
   included: z.array(z.string().min(1)).optional(),
   images: z.array(z.string()).optional(),
   itinerary: z.array(itineraryItem).optional(),

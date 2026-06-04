@@ -583,7 +583,7 @@
         },
         {
           "name": "Packages",
-          "description": "Upload images first (Upload module), then use keys in images[].",
+          "description": "Use multipart/form-data: JSON arrays as strings for highlights, included, itinerary. Upload file field for cover image (S3).",
           "item": [
             {
               "name": "GET List",
@@ -607,21 +607,7 @@
               }
             },
             {
-              "name": "POST Create",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Jaipur Tours\",\n  \"price\": 15000,\n  \"duration\": \"3D/2N\",\n  \"summary\": \"This is a test card\",\n  \"description\": \"This is a test package.\",\n  \"highlights\": [\n    \"Amer Fort\",\n    \"Hawa Mahal\",\n    \"Jal Mahal & Nahargarh Fort\"\n  ],\n  \"groupSize\": \"9 People\",\n  \"rating\": 5,\n  \"included\": [\n    \"4 Star Hotel\",\n    \"Luxury Car\",\n    \"Accommodation\"\n  ],\n  \"images\": [\n    \"{{uploadKey}}\"\n  ],\n  \"itinerary\": [\n    {\n      \"day\": 1,\n      \"title\": \"Day 1 — Arrival\",\n      \"activity\": \"Airport pickup, hotel check-in\"\n    },\n    {\n      \"day\": 2,\n      \"title\": \"Day 2 — Heritage\",\n      \"activity\": \"Amer Fort, City Palace, Hawa Mahal\"\n    }\n  ],\n  \"status\": \"active\"\n}"
-                },
-                "url": "{{baseUrl}}/api/admin/packages"
-              },
+              "name": "POST Create (multipart)",
               "event": [
                 {
                   "listen": "test",
@@ -633,7 +619,105 @@
                     ]
                   }
                 }
-              ]
+              ],
+              "request": {
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": ""
+                    },
+                    {
+                      "key": "title",
+                      "value": "Jaipur Tours",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "15000",
+                      "type": "text"
+                    },
+                    {
+                      "key": "duration",
+                      "value": "5D/4N",
+                      "type": "text"
+                    },
+                    {
+                      "key": "summary",
+                      "value": "Test Package",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Test Package",
+                      "type": "text"
+                    },
+                    {
+                      "key": "groupSize",
+                      "value": "2-6 People",
+                      "type": "text"
+                    },
+                    {
+                      "key": "rating",
+                      "value": "4.8",
+                      "type": "text"
+                    },
+                    {
+                      "key": "status",
+                      "value": "active",
+                      "type": "text"
+                    },
+                    {
+                      "key": "highlights",
+                      "value": "[\"Amer Fort\",\"Hawa mahal\",\"Jal Mahal & Nahargarh Fort\"]",
+                      "type": "text"
+                    },
+                    {
+                      "key": "included",
+                      "value": "[\"4 Star Hotel\",\"Luxury Car\"]",
+                      "type": "text"
+                    },
+                    {
+                      "key": "itinerary",
+                      "value": "[{\"day\":1,\"title\":\"Day 1\",\"activity\":\"Test One\"}]",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{baseUrl}}/api/admin/packages"
+              }
+            },
+            {
+              "name": "POST Create (JSON)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const j = pm.response.json();",
+                      "const id = j.data?.[0]?._id;",
+                      "if (id) pm.collectionVariables.set('packageId', id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Jaipur Tours\",\n  \"price\": 15000,\n  \"duration\": \"5D/4N\",\n  \"summary\": \"Test Package\",\n  \"description\": \"Test Package\",\n  \"groupSize\": \"2-6 People\",\n  \"rating\": 4.8,\n  \"highlights\": [\n    \"Amer Fort\",\n    \"Hawa mahal\",\n    \"Jal Mahal & Nahargarh Fort\"\n  ],\n  \"included\": [\n    \"4 Star Hotel\",\n    \"Luxury Car\"\n  ],\n  \"itinerary\": [\n    {\n      \"day\": 1,\n      \"title\": \"Day 1\",\n      \"activity\": \"Test One\"\n    }\n  ],\n  \"images\": [\n    \"{{uploadKey}}\"\n  ],\n  \"status\": \"active\"\n}"
+                },
+                "url": "{{baseUrl}}/api/admin/packages"
+              }
             },
             {
               "name": "PATCH Update (partial)",
@@ -648,6 +732,33 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"title\": \"Jaipur Tours Premium\",\n  \"price\": 18000,\n  \"summary\": \"Updated summary\",\n  \"status\": \"active\"\n}"
+                },
+                "url": "{{baseUrl}}/api/admin/packages/{{packageId}}"
+              }
+            },
+            {
+              "name": "PATCH Update (multipart)",
+              "request": {
+                "method": "PATCH",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "title",
+                      "value": "Jaipur Tours Premium",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "18000",
+                      "type": "text"
+                    },
+                    {
+                      "key": "rating",
+                      "value": "4.9",
+                      "type": "text"
+                    }
+                  ]
                 },
                 "url": "{{baseUrl}}/api/admin/packages/{{packageId}}"
               }

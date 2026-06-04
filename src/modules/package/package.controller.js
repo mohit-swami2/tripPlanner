@@ -18,7 +18,7 @@ const create = catchAsync(async (req, res, next) => {
   try {
     const pkg = await packageService.create(req.body);
     const data = await withResolved(req, normalizeMongoDoc(pkg));
-    sendSuccess(res, 201, 'Package created', [{ packageId: data.code, ...data }]);
+    sendSuccess(res, 201, 'Package created', [data]);
   } catch (e) {
     next(e);
   }
@@ -26,6 +26,9 @@ const create = catchAsync(async (req, res, next) => {
 
 const update = catchAsync(async (req, res, next) => {
   try {
+    if (!Object.keys(req.body || {}).length) {
+      return next({ status: 400, message: 'No fields to update' });
+    }
     const pkg = await packageService.update(req.params.id, req.body);
     const data = await withResolved(req, pkg);
     sendSuccess(res, 200, 'Package updated', [data]);

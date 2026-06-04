@@ -22,7 +22,7 @@ const packageSchema = new mongoose.Schema(
     description: String,
     highlights: { type: [String], default: [] },
     groupSize: String,
-    rating: { type: Number, min: 0, max: 5, default: 0 },
+    rating: { type: Number, min: 0, max: 10, default: 0 },
     included: { type: [String], default: [] },
     images: { type: [String], default: [] },
     itinerary: { type: [itineraryDaySchema], default: [] },
