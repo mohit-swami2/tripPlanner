@@ -8,6 +8,7 @@ const faqRoutes = require('../../modules/cms/faq/faq.website.routes');
 const cmsRoutes = require('../../modules/cms/content/content.website.routes');
 const masterBannerRoutes = require('../../modules/cms/masterBanner/masterBanner.website.routes');
 const globalSettingRoutes = require('../../modules/globalSetting/globalSetting.website.routes');
+const seoPageRoutes = require('../../modules/seoPage/seoPage.website.routes');
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/faqs', faqRoutes);
 router.use('/cms', cmsRoutes);
 router.use('/master-banners', masterBannerRoutes);
 router.use('/settings', globalSettingRoutes);
+router.use('/seo-pages', seoPageRoutes);
 
 module.exports = router;

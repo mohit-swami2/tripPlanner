@@ -1,15 +1,15 @@
 const DEFAULTS = {
-  siteName: 'Jaipur Tourism',
+  siteName: 'TripPlanner',
   tagline: 'Discover the Pink City',
-  contactEmail: 'hello@jaipurtourism.com',
-  contactPhone: '+91 98765 43210',
-  address: 'Jaipur, Rajasthan, India',
+  contactEmail: 'info@tripplanner.swamimohit.in',
+  contactPhone: '+91 9828854006',
+  address: 'TripPlanner, Malviya Nagar, Jaipur, Rajasthan 302017, India',
   facebookUrl: '',
   instagramUrl: '',
   twitterUrl: '',
-  defaultMetaTitle: 'Jaipur Tourism — Plan Your Royal Getaway',
+  defaultMetaTitle: 'Jaipur Tour Packages 2026 – Best Deals | TripPlanner',
   defaultMetaDescription:
-    'Book curated heritage, adventure, and cultural experiences in Jaipur.',
+    'Book Jaipur tour packages from ₹4,000 with hotels, sightseeing & guides. Malviya Nagar agency with honest pricing.',
   logo: '',
   favicon: '',
 };

@@ -15,6 +15,7 @@ const cmsRoutes = require('../../modules/cms/cms.admin.routes');
 const contactRoutes = require('../../modules/contactUs/contactUs.admin.routes');
 const uploadRoutes = require('../../modules/upload/upload.routes');
 const globalSettingRoutes = require('../../modules/globalSetting/globalSetting.admin.routes');
+const seoPageRoutes = require('../../modules/seoPage/seoPage.admin.routes');
 
 const router = Router();
 
@@ -35,5 +36,6 @@ router.use('/cms', cmsRoutes);
 router.use('/contacts', contactRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/settings', globalSettingRoutes);
+router.use('/seo-pages', seoPageRoutes);
 
 module.exports = router;

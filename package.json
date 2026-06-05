@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "seed:admin": "node scripts/seedAdmin.js",
     "seed:settings": "node scripts/seedGlobalSettings.js",
+    "seed:seo-pages": "node scripts/seedSeoPages.js",
     "verify:s3": "node scripts/verifyS3.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
