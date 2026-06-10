@@ -4,7 +4,7 @@ const PAYMENT_TYPE = ['Token', 'Full', 'Partial'];
 const VENDOR_TYPE = ['Hotel', 'Vehicle', 'Restaurant', 'Guide', 'Other'];
 const PACKAGE_STATUS = ['active', 'inactive', 'draft'];
 const CMS_SECTIONS = ['FAQ', 'About Us', 'Hero Section', 'Terms', 'Privacy'];
-const SEO_PAGE_CATEGORY = ['jaipur', 'blog', 'about'];
+const SEO_PAGE_CATEGORY = ['info', 'blog', 'about'];
 const SEO_PAGE_STATUS = ['draft', 'published'];
 
 module.exports = {

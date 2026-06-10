@@ -8,6 +8,12 @@ const faqItem = z.object({
   isEnabled: z.boolean().optional(),
 });
 
+const createFaqSchema = z.object({
+  body: faqItem.extend({
+    isEnabled: z.boolean().optional(),
+  }),
+});
+
 const upsertFaqSchema = z.object({
   body: z.object({
     faqs: z.array(faqItem).optional(),
@@ -25,4 +31,4 @@ const updateFaqSchema = z.object({
   body: faqItem.partial(),
 });
 
-module.exports = { upsertFaqSchema, updateFaqSchema, listFaqSchema, faqItem };
+module.exports = { createFaqSchema, upsertFaqSchema, updateFaqSchema, listFaqSchema, faqItem };

@@ -36,12 +36,13 @@ const DEFAULT_LINKS = [
   { href: '/travel-inquiry/', anchor: 'enquire about your Jaipur trip' },
 ];
 
-function jaipur(slug, data) {
+function info(slug, data) {
   return {
     slug,
-    category: 'jaipur',
+    category: 'info',
     path: `/jaipur/${slug}/`,
     status: 'published',
+    isEnabled: true,
     publishedAt: new Date('2026-01-01'),
     faqs: UNIVERSAL_FAQS,
     internalLinks: DEFAULT_LINKS,
@@ -50,20 +51,30 @@ function jaipur(slug, data) {
   };
 }
 
+const BLOG_IMAGES = {
+  'jaipur-3-day-itinerary': 'https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=800',
+  'top-10-places-to-visit-in-jaipur': 'https://images.unsplash.com/photo-1609137144813-7d9921338f24?q=80&w=800',
+  'best-hotels-in-jaipur-under-2000': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800',
+  'delhi-to-jaipur-train-trip': 'https://images.unsplash.com/photo-1474487548417-781cb5898fa0?q=80&w=800',
+  'famous-food-in-jaipur': 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?q=80&w=800',
+};
+
 function blog(slug, data) {
   return {
     slug,
     category: 'blog',
     path: `/blog/${slug}/`,
     status: 'published',
+    isEnabled: true,
     faqs: [],
     schemaTypes: ['Article', 'BreadcrumbList'],
+    image: BLOG_IMAGES[slug] ?? '',
     ...data,
   };
 }
 
 const SEO_PAGES_SEED = [
-  jaipur('jaipur-tour-packages', {
+  info('jaipur-tour-packages', {
     metaTitle: 'Jaipur Tour Packages with Hotel 2026 | TripPlanner',
     metaDescription:
       'Jaipur tour packages with hotel, AC cab & guided sightseeing from ₹4,000. Honeymoon, family & group trips. Better value than local agencies. Book now.',
@@ -76,7 +87,7 @@ const SEO_PAGES_SEED = [
       { title: 'Popular Packages', paragraphs: ['Jaipur Express from ₹4,000 · Pink City Classic from ₹6,500 · Royal Rajasthan from ₹9,500'] },
     ],
   }),
-  jaipur('budget-trip-jaipur', {
+  info('budget-trip-jaipur', {
     metaTitle: 'Budget Trip Jaipur – Packages from ₹4,000 | TripPlanner',
     metaDescription: 'Plan a budget trip to Jaipur from ₹4,000. Cheap tour packages with hotels, fort visits & local guides.',
     primaryKeyword: 'budget trip jaipur',
@@ -84,7 +95,7 @@ const SEO_PAGES_SEED = [
     intro: 'Experience Jaipur without overspending. Honest prices with no inflated agency markups.',
     sections: [{ title: 'Budget Itinerary', paragraphs: ['2-day plan covering Amber Fort, City Palace, Hawa Mahal, and Nahargarh sunset.'] }],
   }),
-  jaipur('jaipur-hotels', {
+  info('jaipur-hotels', {
     metaTitle: 'Jaipur Hotel Booking with Tour Packages | TripPlanner',
     metaDescription: 'Jaipur hotel booking bundled with tour packages from ₹4,000.',
     primaryKeyword: 'jaipur hotel booking',
@@ -93,7 +104,7 @@ const SEO_PAGES_SEED = [
     sections: [{ title: 'Hotel + Tour Combos', paragraphs: ['Bundle hotel with sightseeing from ₹4,000.'] }],
     schemaTypes: ['Hotel', 'FAQPage', 'BreadcrumbList'],
   }),
-  jaipur('places-to-visit-in-jaipur', {
+  info('places-to-visit-in-jaipur', {
     metaTitle: 'Places to Visit in Jaipur – Top Attractions | TripPlanner',
     metaDescription: 'Discover the best places to visit in Jaipur — Amber Fort, Hawa Mahal, City Palace & more.',
     primaryKeyword: 'places to visit in jaipur',
@@ -102,7 +113,7 @@ const SEO_PAGES_SEED = [
     sections: [{ title: 'Top Attractions', paragraphs: ['Amber Fort, Hawa Mahal, City Palace, Jantar Mantar, Nahargarh Fort, and more.'] }],
     schemaTypes: ['TouristAttraction', 'FAQPage', 'BreadcrumbList'],
   }),
-  jaipur('jaipur-itinerary', {
+  info('jaipur-itinerary', {
     metaTitle: 'Jaipur Itinerary 3 Days – Perfect Trip Plan | TripPlanner',
     metaDescription: 'Follow our Jaipur itinerary for 3 days covering forts, bazaars & local food.',
     primaryKeyword: 'jaipur itinerary 3 days',
@@ -111,7 +122,7 @@ const SEO_PAGES_SEED = [
     sections: [{ title: '3-Day Plan', paragraphs: ['Day 1: Old City · Day 2: Forts · Day 3: Culture & departure'] }],
     schemaTypes: ['FAQPage', 'BreadcrumbList'],
   }),
-  jaipur('best-time-to-visit-jaipur', {
+  info('best-time-to-visit-jaipur', {
     metaTitle: 'Best Time to Visit Jaipur – Season Guide 2026 | TripPlanner',
     metaDescription: 'Find the best time to visit Jaipur — weather, festivals & crowd tips.',
     primaryKeyword: 'best time to visit jaipur',
@@ -123,7 +134,7 @@ const SEO_PAGES_SEED = [
   ...['delhi', 'mumbai', 'gurgaon', 'noida', 'ahmedabad', 'pune', 'bangalore', 'hyderabad'].map((city) => {
     const slug = city === 'delhi' ? 'jaipur-weekend-trip-from-delhi' : `jaipur-trip-from-${city}`;
     const name = city.charAt(0).toUpperCase() + city.slice(1);
-    return jaipur(slug, {
+    return info(slug, {
       metaTitle: `Jaipur Trip from ${name} – Packages 2026 | TripPlanner`,
       metaDescription: `Jaipur trip from ${name} with packages from ₹4,000. Hotels, sightseeing & transfers included.`,
       primaryKeyword: `jaipur trip from ${city}`,
@@ -132,7 +143,7 @@ const SEO_PAGES_SEED = [
       sections: [{ title: 'Trip Plan', paragraphs: [`Custom ${name} to Jaipur packages with hotel, AC cab, and guided tours.`] }],
     });
   }),
-  jaipur('jaipur-honeymoon-packages', {
+  info('jaipur-honeymoon-packages', {
     metaTitle: 'Jaipur Honeymoon Packages – Couples 2026 | TripPlanner',
     metaDescription: 'Romantic Jaipur honeymoon packages from ₹4,000.',
     primaryKeyword: 'jaipur honeymoon package',
@@ -140,7 +151,7 @@ const SEO_PAGES_SEED = [
     intro: 'Heritage hotels, private fort tours, and candlelight dinners.',
     sections: [{ title: 'Romantic Experiences', paragraphs: ['Private tours, heritage stays, rooftop dinners.'] }],
   }),
-  jaipur('corporate-trips-jaipur', {
+  info('corporate-trips-jaipur', {
     metaTitle: 'Corporate Trips to Jaipur – Team Outings | TripPlanner',
     metaDescription: 'Corporate trips to Jaipur for team outings and offsites from ₹4,000.',
     primaryKeyword: 'corporate trips to jaipur',
@@ -148,7 +159,7 @@ const SEO_PAGES_SEED = [
     intro: 'Custom corporate packages with team-building activities.',
     sections: [{ title: 'Team Building', paragraphs: ['Fort treasure hunts, pottery workshops, cooking classes.'] }],
   }),
-  jaipur('school-trips-jaipur', {
+  info('school-trips-jaipur', {
     metaTitle: 'School Trips to Jaipur – Educational Tours | TripPlanner',
     metaDescription: 'School trips to Jaipur with safe transport and educational visits from ₹4,000.',
     primaryKeyword: 'school trips to jaipur',
@@ -156,7 +167,7 @@ const SEO_PAGES_SEED = [
     intro: 'Educational tours with safe transport and trained guides.',
     sections: [{ title: 'Educational Value', paragraphs: ['History, architecture, astronomy at Jantar Mantar.'] }],
   }),
-  jaipur('rajasthan-tour-packages', {
+  info('rajasthan-tour-packages', {
     metaTitle: 'Rajasthan Tour Packages – Jaipur Pushkar Ajmer | TripPlanner',
     metaDescription: 'Rajasthan tour packages covering Jaipur, Pushkar & Ajmer from ₹4,000.',
     primaryKeyword: 'rajasthan tour packages from jaipur',
@@ -224,6 +235,7 @@ const SEO_PAGES_SEED = [
     category: 'about',
     path: '/about/',
     status: 'published',
+    isEnabled: true,
     publishedAt: new Date('2026-01-01'),
     metaTitle: 'Jaipur Tour Operator in Malviya Nagar | TripPlanner',
     metaDescription: 'TripPlanner is a trusted Jaipur tour operator in Malviya Nagar.',

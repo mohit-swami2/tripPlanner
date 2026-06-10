@@ -18,8 +18,14 @@ const sanitizePayload = (data) => {
 const list = async (query, { publicOnly = false } = {}) => {
   const { page, limit, sortBy, sortOrder, skip } = getPaginationOptions(query);
   const match = { ...buildQueryFilter(query, SeoPage), ...notDeleted };
-  if (publicOnly) match.status = 'published';
+  if (publicOnly) {
+    match.status = 'published';
+    match.isEnabled = true;
+  }
   if (query.category) match.category = query.category;
+  if (query.isEnabled !== undefined && query.isEnabled !== '') {
+    match.isEnabled = query.isEnabled === true || query.isEnabled === 'true';
+  }
 
   const sort = { [sortBy]: sortOrder === 1 ? 1 : -1 };
 
@@ -35,8 +41,13 @@ const list = async (query, { publicOnly = false } = {}) => {
 };
 
 const getBySlug = async (category, slug, { publicOnly = false } = {}) => {
-  const filter = { category, slug: String(slug).trim().toLowerCase(), ...notDeleted };
-  if (publicOnly) filter.status = 'published';
+  const normalizedSlug = String(slug).trim().toLowerCase();
+  const categories = category === 'info' ? ['info', 'jaipur'] : [category];
+  const filter = { category: { $in: categories }, slug: normalizedSlug, ...notDeleted };
+  if (publicOnly) {
+    filter.status = 'published';
+    filter.isEnabled = true;
+  }
   const page = await SeoPage.findOne(filter).lean();
   if (!page) throw { status: 404, message: 'SEO page not found' };
   return normalizeMongoDoc(page);

@@ -40,8 +40,10 @@ const seoPageSchema = new mongoose.Schema(
     internalLinks: { type: [internalLinkSchema], default: [] },
     schemaTypes: { type: [String], default: [] },
     excerpt: { type: String, default: '' },
+    image: { type: String, default: '' },
     publishedAt: { type: Date },
     status: { type: String, enum: SEO_PAGE_STATUS, default: 'published' },
+    isEnabled: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }

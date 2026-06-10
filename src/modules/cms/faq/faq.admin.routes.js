@@ -5,7 +5,7 @@ const schemas = require('./faq.schemas');
 
 const router = Router();
 router.get('/', validate(schemas.listFaqSchema), controller.list);
-router.post('/', validate(schemas.upsertFaqSchema), controller.create);
+router.post('/', validate(schemas.createFaqSchema), controller.create);
 router.patch('/:id', validate(schemas.updateFaqSchema), controller.update);
 router.delete('/:id', controller.remove);
 

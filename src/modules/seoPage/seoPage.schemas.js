@@ -31,8 +31,10 @@ const seoPageBody = z.object({
   internalLinks: z.array(internalLinkSchema).optional(),
   schemaTypes: z.array(z.string()).optional(),
   excerpt: z.string().optional(),
+  image: z.string().optional(),
   publishedAt: z.coerce.date().optional(),
   status: z.enum(SEO_PAGE_STATUS).optional(),
+  isEnabled: z.coerce.boolean().optional(),
 });
 
 const createSeoPageSchema = z.object({ body: seoPageBody });
@@ -56,6 +58,9 @@ const seoPageSlugParamSchema = z.object({
 const listSeoPageSchema = listQuerySchema.extend({
   category: z.enum(SEO_PAGE_CATEGORY).optional(),
   status: z.enum(SEO_PAGE_STATUS).optional(),
+  isEnabled: z.coerce.boolean().optional(),
+  h1: z.string().optional(),
+  slug: z.string().optional(),
 });
 
 module.exports = {
