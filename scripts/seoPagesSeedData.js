@@ -36,6 +36,17 @@ const DEFAULT_LINKS = [
   { href: '/travel-inquiry/', anchor: 'enquire about your Jaipur trip' },
 ];
 
+const INFO_IMAGES = {
+  'jaipur-tour-packages': 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?q=80&w=1600',
+  'budget-trip-jaipur': 'https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=1600',
+  'jaipur-hotels': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1600',
+  'places-to-visit-in-jaipur': 'https://images.unsplash.com/photo-1609137144813-7d9921338f24?q=80&w=1600',
+  'jaipur-itinerary': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1600',
+  'best-time-to-visit-jaipur': 'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=80&w=1600',
+  'jaipur-honeymoon-packages': 'https://images.unsplash.com/photo-1524492412937-336c9fd4e4f8?q=80&w=1600',
+  'rajasthan-tour-packages': 'https://images.unsplash.com/photo-1474487548417-781cb5898fa0?q=80&w=1600',
+};
+
 function info(slug, data) {
   return {
     slug,
@@ -47,6 +58,7 @@ function info(slug, data) {
     faqs: UNIVERSAL_FAQS,
     internalLinks: DEFAULT_LINKS,
     schemaTypes: ['Product', 'FAQPage', 'BreadcrumbList'],
+    image: INFO_IMAGES[slug] ?? '',
     ...data,
   };
 }
