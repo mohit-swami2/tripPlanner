@@ -39,6 +39,28 @@ const isStoredObjectKey = (value) => {
   return UPLOAD_KEY_PREFIXES().has(firstSegment);
 };
 
+/** Normalize a stored image value to an object key, or return external URLs unchanged. */
+const extractObjectKey = (value) => {
+  if (typeof value !== 'string' || !value.trim()) return '';
+  const trimmed = value.trim();
+  if (isStoredObjectKey(trimmed)) return trimmed;
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    try {
+      const { hostname, pathname } = new URL(trimmed);
+      if (hostname.includes('amazonaws.com')) {
+        const key = decodeURIComponent(pathname.replace(/^\//, ''));
+        if (isStoredObjectKey(key)) return key;
+      }
+      return trimmed;
+    } catch {
+      return trimmed;
+    }
+  }
+
+  return trimmed;
+};
+
 const SKIP_FILE_RESOLVE_KEYS = new Set(['_id', 'id', '__v', 'key']);
 
 const getFileUrl = async (req, relativePath) => {
@@ -84,8 +106,10 @@ const resolveFileUrlsDeep = async (req, data) => {
     return Promise.all(data.map((item) => resolveFileUrlsDeep(req, item)));
   }
 
-  if (typeof data === 'string' && isStoredObjectKey(data)) {
-    return getFileUrl(req, data);
+  if (typeof data === 'string') {
+    const key = extractObjectKey(data);
+    if (isStoredObjectKey(key)) return getFileUrl(req, key);
+    return data;
   }
 
   if (typeof data !== 'object') return data;
@@ -107,4 +131,5 @@ module.exports = {
   persistUpload,
   resolveFileUrlsDeep,
   isStoredObjectKey,
+  extractObjectKey,
 };

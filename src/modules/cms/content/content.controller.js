@@ -1,11 +1,13 @@
 const catchAsync = require('../../../shared/utils/catchAsync');
 const { sendSuccess } = require('../../../shared/utils/response');
+const { resolveFileUrlsDeep } = require('../../../shared/utils/fileUrl');
 const service = require('./content.service');
 
 const save = catchAsync(async (req, res, next) => {
   try {
     const content = await service.save(req.body);
-    sendSuccess(res, 200, 'CMS content saved', [content]);
+    const data = await resolveFileUrlsDeep(req, content);
+    sendSuccess(res, 200, 'CMS content saved', [data]);
   } catch (e) {
     next(e);
   }
@@ -14,15 +16,17 @@ const save = catchAsync(async (req, res, next) => {
 const getBySection = catchAsync(async (req, res, next) => {
   try {
     const content = await service.getBySection(req.params.section, { publicOnly: req.publicCms === true });
-    sendSuccess(res, 200, 'Content fetched', [{ section: content.section, content: content.data }]);
+    const resolved = await resolveFileUrlsDeep(req, content);
+    sendSuccess(res, 200, 'Content fetched', [{ section: resolved.section, content: resolved.data }]);
   } catch (e) {
     next(e);
   }
 });
 
-const list = catchAsync(async (_req, res) => {
+const list = catchAsync(async (req, res) => {
   const items = await service.list();
-  sendSuccess(res, 200, 'CMS sections fetched', items);
+  const data = await resolveFileUrlsDeep(req, items);
+  sendSuccess(res, 200, 'CMS sections fetched', data);
 });
 
 module.exports = { save, getBySection, list };

@@ -2,13 +2,48 @@ const SeoPage = require('./seoPage.model');
 const { buildQueryFilter } = require('../../shared/utils/queryBuilder');
 const { getPaginationOptions, buildPaginationExtras } = require('../../shared/utils/pagination');
 const { normalizeMongoDoc } = require('../../shared/utils/serializeDoc');
+const { extractObjectKey } = require('../../shared/utils/fileUrl');
 
 const notDeleted = { isDeleted: false };
+
+const dedupeInternalLinks = (links) => {
+  if (!Array.isArray(links)) return links;
+  const seen = new Set();
+  return links.filter((link) => {
+    const href = link?.href?.trim();
+    if (!href || seen.has(href)) return false;
+    seen.add(href);
+    return true;
+  });
+};
+
+const dedupePublicPagesByPath = (rows) => {
+  const byPath = new Map();
+  for (const row of rows) {
+    const path = row.path?.trim();
+    if (!path) continue;
+    const existing = byPath.get(path);
+    if (!existing) {
+      byPath.set(path, row);
+      continue;
+    }
+    if (row.category === 'info' && existing.category === 'jaipur') {
+      byPath.set(path, row);
+    }
+  }
+  return Array.from(byPath.values());
+};
 
 const sanitizePayload = (data) => {
   const payload = { ...data };
   if (payload.slug) payload.slug = String(payload.slug).trim().toLowerCase();
   if (payload.path) payload.path = String(payload.path).trim();
+  if (payload.image !== undefined) {
+    payload.image = extractObjectKey(payload.image);
+  }
+  if (payload.internalLinks !== undefined) {
+    payload.internalLinks = dedupeInternalLinks(payload.internalLinks);
+  }
   if (payload.status === 'published' && !payload.publishedAt) {
     payload.publishedAt = new Date();
   }
@@ -28,6 +63,16 @@ const list = async (query, { publicOnly = false } = {}) => {
   }
 
   const sort = { [sortBy]: sortOrder === 1 ? 1 : -1 };
+
+  if (publicOnly) {
+    const rows = dedupePublicPagesByPath(await SeoPage.find(match).sort(sort).lean());
+    const total = rows.length;
+    const paged = rows.slice(skip, skip + limit);
+    return {
+      data: paged.map(normalizeMongoDoc),
+      ...buildPaginationExtras({ page, limit, sortBy, sortOrder, total }),
+    };
+  }
 
   const [rows, total] = await Promise.all([
     SeoPage.find(match).sort(sort).skip(skip).limit(limit).lean(),

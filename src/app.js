@@ -36,6 +36,9 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/public', express.static(path.join(process.cwd(), 'public')));
+['uploads', 'uploads2'].forEach((dir) => {
+  app.use(`/${dir}`, express.static(path.join(process.cwd(), dir)));
+});
 
 /** Connect before request logging so [API] logs show readyState 1 when connected. */
 app.use(ensureDbConnection);
